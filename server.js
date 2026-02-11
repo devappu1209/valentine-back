@@ -1,37 +1,36 @@
-const express = require("express");
-const nodemailer = require("nodemailer");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import { Resend } from "resend";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: "sportsguyappu@gmail.com",
-        pass: "yzgpxxxxxxxxxxx"
-    }
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+app.get("/", (req, res) => {
+    res.send("Valentine Backend is running 💖");
 });
 
 app.post("/send-prize", async (req, res) => {
     const { prizeName } = req.body;
 
     try {
-        await transporter.sendMail({
-            from: "Love Surprise 💖 <sportsguyappu@gmail.com>",
-            to: "sportsguyappu@gmail.com",
+        await resend.emails.send({
+            from: "Valentine Surprise <onboarding@resend.dev>",
+            to: ["sportsguyappu@gmail.com"],
             subject: "🎁 Surprise She Chose!",
-            text: `She selected this surprise: ${prizeName}`
+            html: `<h2>💖 She selected this surprise:</h2><p>${prizeName}</p>`
         });
 
         res.json({ success: true });
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        console.error("EMAIL ERROR:", error);
         res.status(500).json({ success: false });
     }
 });
 
-app.listen(3000, () => {
-    console.log("💌 Mail server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("💌 Email service running on port", PORT);
 });
